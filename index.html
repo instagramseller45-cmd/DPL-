@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPL - Deoli Premier League</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#10b981', 600: '#059669' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- html2canvas for ID Card Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- JSZip for Admin Data & Photo Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased">
+
+    <!-- Header -->
+    <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-600 text-white font-black px-3 py-1.5 rounded-lg text-lg tracking-wider shadow">DPL</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">Deoli Premier League</h1>
+                    <p class="text-xs text-emerald-400 font-medium">Official Player Registration Portal</p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="switchTab('register')" id="navRegBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">Register</button>
+                <button onclick="switchTab('admin')" id="navAdminBtn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-semibold transition border border-gray-700">Admin Login</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- REGISTER SECTION -->
+        <section id="registerSection" class="space-y-6">
+            
+            <!-- Success ID Card View (Hidden initially) -->
+            <div id="successCardContainer" class="hidden space-y-4">
+                <div class="bg-emerald-950/40 border border-emerald-500/30 p-4 rounded-xl text-center">
+                    <h2 class="text-xl font-bold text-emerald-400">🎉 Registration Successful!</h2>
+                    <p class="text-sm text-gray-300">Your digital ID card has been generated successfully.</p>
+                </div>
+
+                <!-- Printable ID Card Box -->
+                <div id="captureCard" class="max-w-md mx-auto bg-gray-900 border-2 border-emerald-500/50 rounded-2xl p-6 shadow-2xl relative overflow-hidden text-gray-100">
+                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">Registered</div>
+                    
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="bg-emerald-500 text-gray-950 font-black px-2.5 py-1 rounded text-sm">DPL</div>
+                        <h3 class="font-extrabold text-lg tracking-wide text-white">Deoli Premier League</h3>
+                    </div>
+
+                    <div class="flex flex-col items-center mb-6">
+                        <div class="w-28 h-28 rounded-2xl border-2 border-emerald-500/80 overflow-hidden bg-gray-800 shadow-inner mb-3 flex items-center justify-center">
+                            <img id="cardPhotoPreview" src="" alt="Player Photo" class="w-full h-full object-cover">
+                        </div>
+                        <span id="cardRoleBadge" class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30"></span>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <h2 id="cardPlayerName" class="text-2xl font-black text-white tracking-tight uppercase"></h2>
+                        <p id="cardRegId" class="text-emerald-400 font-mono font-bold text-sm mt-1"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 bg-gray-950/60 p-4 rounded-xl border border-gray-800 text-sm mb-4">
+                        <div>
+                            <span class="text-gray-400 text-xs block">City</span>
+                            <span id="cardCity" class="font-semibold text-gray-200"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-xs block">Phone</span>
+                            <span id="cardPhone" class="font-semibold text-gray-200"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-xs block">Jersey Size</span>
+                            <span id="cardSize" class="font-semibold text-gray-200 uppercase"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-xs block">Age</span>
+                            <span id="cardAge" class="font-semibold text-gray-200"></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 text-center">
+                        <span class="text-xs text-gray-400 block uppercase tracking-wider">Name & Number on Jersey</span>
+                        <span id="cardJerseyInfo" class="font-extrabold text-emerald-400 text-base tracking-wide"></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-center space-x-4">
+                    <button onclick="downloadIdCard()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center space-x-2">
+                        <span>📥 Download ID Card</span>
+                    </button>
+                    <button onclick="resetFormView()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold px-6 py-3 rounded-xl border border-gray-700 transition">
+                        Register Another Player
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div id="formContainer" class="bg-gray-900 border border-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold tracking-tight">Player Registration Form</h2>
+                    <p class="text-sm text-gray-400">Fill in your accurate details to participate in DPL.</p>
+                </div>
+
+                <form id="playerForm" onsubmit="handleRegistration(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Full Name *</label>
+                            <input type="text" id="fullName" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">City / Village *</label>
+                            <input type="text" id="city" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Age *</label>
+                            <input type="number" id="age" min="10" max="60" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Phone Number *</label>
+                            <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="10-digit mobile number" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Playing Role *</label>
+                            <select id="role" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <option value="Batsman">Batsman</option>
+                                <option value="Bowler">Bowler</option>
+                                <option value="All-rounder">All-rounder</option>
+                                <option value="Wicket-keeper">Wicket-keeper</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Jersey Size *</label>
+                            <select id="jerseySize" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                                <option value="S">Small (S)</option>
+                                <option value="M">Medium (M)</option>
+                                <option value="L">Large (L)</option>
+                                <option value="XL" selected>XL</option>
+                                <option value="XXL">XXL</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Jersey Number *</label>
+                            <input type="number" id="jerseyNumber" min="1" max="999" placeholder="e.g. 7, 18, 45" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Name to Print on Jersey *</label>
+                        <input type="text" id="jerseyName" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white uppercase focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+
+                    <!-- Custom Photo Upload Button -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Player Photo *</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 px-5 py-3 rounded-xl font-medium transition shadow flex items-center space-x-2">
+                                <span>📁 Upload Player Photo</span>
+                                <input type="file" id="photoInput" accept="image/*" required onchange="previewFileName(this)" class="hidden">
+                            </label>
+                            <span id="fileNameDisplay" class="text-sm text-gray-400 italic">No file chosen</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg transition tracking-wide text-lg mt-4">
+                        Submit Registration
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ADMIN SECTION -->
+        <section id="adminSection" class="hidden space-y-6">
+            <!-- Password Gate -->
+            <div id="adminLoginGate" class="max-w-md mx-auto bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-xl text-center space-y-4">
+                <div class="w-12 h-12 bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">🔒</div>
+                <h3 class="text-xl font-bold">Admin Authentication</h3>
+                <p class="text-sm text-gray-400">Enter admin password to manage registered players.</p>
+                <input type="password" id="adminPasswordInput" placeholder="Enter password (admin123)" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white text-center focus:outline-none focus:border-emerald-500">
+                <button onclick="verifyAdmin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">Login to Dashboard</button>
+            </div>
+
+            <!-- Admin Dashboard Content -->
+            <div id="adminDashboardContent" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl">
+                    <div>
+                        <h2 class="text-xl font-bold">Admin Dashboard</h2>
+                        <p class="text-sm text-emerald-400"><span id="totalPlayersCount">0</span> Players Registered Globally</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="downloadAllZip()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center space-x-2">
+                            <span>📦 Download All Data (ZIP)</span>
+                        </button>
+                        <button onclick="clearAllData()" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-4 py-2.5 rounded-xl text-sm font-semibold transition">
+                            Reset All Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Filter -->
+                <div class="bg-gray-900 p-4 rounded-xl border border-gray-800">
+                    <input type="text" id="searchInput" oninput="renderTable()" placeholder="🔍 Search players by name, phone, city or ID..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Players Table -->
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-950 text-gray-400 text-xs uppercase tracking-wider border-b border-gray-800">
+                                    <th class="p-4">Photo</th>
+                                    <th class="p-4">Reg ID</th>
+                                    <th class="p-4">Player Name</th>
+                                    <th class="p-4">City / Phone</th>
+                                    <th class="p-4">Role & Jersey</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playersTableBody" class="divide-y divide-gray-800 text-sm">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const STORAGE_KEY = 'dpl_players_master_list';
+
+        function switchTab(tab) {
+            const regSec = document.getElementById('registerSection');
+            const adminSec = document.getElementById('adminSection');
+            const regBtn = document.getElementById('navRegBtn');
+            const adminBtn = document.getElementById('navAdminBtn');
+
+            if (tab === 'register') {
+                regSec.classList.remove('hidden');
+                adminSec.classList.add('hidden');
+                regBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
+                adminBtn.className = "bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-semibold transition border border-gray-700";
+            } else {
+                regSec.classList.add('hidden');
+                adminSec.classList.remove('hidden');
+                adminBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
+                regBtn.className = "bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-semibold transition border border-gray-700";
+                
+                // Show login gate first
+                document.getElementById('adminLoginGate').classList.remove('hidden');
+                document.getElementById('adminDashboardContent').classList.add('hidden');
+            }
+        }
+
+        function previewFileName(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files && input.files[0]) {
+                display.textContent = input.files[0].name;
+            } else {
+                display.textContent = 'No file chosen';
+            }
+        }
+
+        function handleRegistration(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('photoInput');
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Please upload a player photo.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                const photoBase64 = uploadEvent.target.result;
+
+                // Fetch global storage list
+                let players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                
+                // Continuous Unique ID Generation (Never resets)
+                const nextIdNum = players.length + 1;
+                const regId = `DPL-2026-${String(nextIdNum).padStart(3, '0')}`;
+
+                const newPlayer = {
+                    id: regId,
+                    fullName: document.getElementById('fullName').value.trim(),
+                    city: document.getElementById('city').value.trim(),
+                    age: document.getElementById('age').value,
+                    phone: document.getElementById('phone').value.trim(),
+                    role: document.getElementById('role').value,
+                    jerseySize: document.getElementById('jerseySize').value,
+                    jerseyNumber: document.getElementById('jerseyNumber').value,
+                    jerseyName: document.getElementById('jerseyName').value.trim().toUpperCase(),
+                    photo: photoBase64,
+                    date: new Date().toISOString()
+                };
+
+                players.push(newPlayer);
+                localStorage.setItem(STORAGE_KEY, JSON.
