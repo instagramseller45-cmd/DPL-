@@ -271,7 +271,6 @@
                 adminBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow";
                 regBtn.className = "bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-semibold transition border border-gray-700";
                 
-                // Show login gate first
                 document.getElementById('adminLoginGate').classList.remove('hidden');
                 document.getElementById('adminDashboardContent').classList.add('hidden');
             }
@@ -299,10 +298,7 @@
             reader.onload = function(uploadEvent) {
                 const photoBase64 = uploadEvent.target.result;
 
-                // Fetch global storage list
                 let players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-                
-                // Continuous Unique ID Generation (Never resets)
                 const nextIdNum = players.length + 1;
                 const regId = `DPL-2026-${String(nextIdNum).padStart(3, '0')}`;
 
@@ -321,4 +317,8 @@
                 };
 
                 players.push(newPlayer);
-                localStorage.setItem(STORAGE_KEY, JSON.
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+
+                // Populate ID Card UI
+                document.getElementById('cardPhotoPreview').src = newPlayer.photo;
+                document.
